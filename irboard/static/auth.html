@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Pair this device · iR-Board</title>
+    <link rel="stylesheet" href="/auth.css">
+  </head>
+  <body>
+    <main>
+      <p class="brand">iR-Board</p>
+      <h1>Pair this device</h1>
+      <p>On the computer running iR-Board, scan the connection QR or find the six-digit code in its desktop window or connection page.</p>
+      <form id="pair-form">
+        <label for="pair-code">Six-digit code</label>
+        <input id="pair-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" required aria-describedby="pair-status">
+        <button id="pair-submit" type="submit">Connect</button>
+      </form>
+      <p id="pair-status" role="status" aria-live="polite"></p>
+      <p class="help">Codes expire after five minutes and can be used once. Too many attempts temporarily block pairing. The dashboard stays private until this device is paired.</p>
+      <p class="help">Use a trusted private LAN. HTTP does not encrypt traffic; do not expose this server to the Internet.</p>
+    </main>
+    <script src="/auth.js" type="module"></script>
+  </body>
+</html>

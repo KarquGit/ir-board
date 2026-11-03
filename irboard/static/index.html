@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101216" />
+    <title>iR-Board · iRacing dashboard</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail">
+        <a class="brand" href="/" aria-label="iR-Board">R<span>▰</span></a>
+        <div class="rail-label">iR-Board</div>
+        <div id="page-nav"></div>
+        <button
+          id="new-page"
+          class="rail-button"
+          title="Add page"
+          aria-label="Add page"
+        >
+          ＋
+        </button>
+        <div class="rail-bottom">
+          <button
+            id="settings"
+            class="rail-button"
+            title="Settings"
+            aria-label="Settings"
+          >
+            ⚙</button
+          ><span class="version">v1.0.0</span>
+        </div>
+      </aside>
+      <main>
+        <header class="topbar">
+          <div class="breadcrumb">
+            WORKSPACE <span>/</span> <b id="page-name">Race</b>
+          </div>
+          <div class="top-actions">
+            <a
+              id="connect-tablet"
+              class="icon-button"
+              href="/connect"
+              title="Connect a tablet · QR code"
+              aria-label="Connect a tablet"
+              >▦</a
+            ><span id="source-status" class="badge waiting">Connecting…</span
+            ><button
+              id="fullscreen"
+              class="icon-button"
+              aria-label="Fullscreen"
+              title="Fullscreen"
+            >
+              ⛶</button
+            ><button id="layouts" class="button secondary" title="Page layouts">
+              ▦ <span>Layouts</span></button
+            ><button id="edit" class="button secondary">
+              ✥ <span>Edit layout</span></button
+            ><button id="add-widget" class="button primary">
+              ＋ <span>Add widget</span>
+            </button>
+          </div>
+        </header>
+        <div
+          id="connection-banner"
+          class="connection-banner"
+          role="status"
+          hidden
+        ></div>
+        <div class="workspace-head">
+          <div>
+            <h2 id="layout-title">Race overview</h2>
+            <span id="widget-count" class="muted"></span>
+          </div>
+          <div class="workspace-tools">
+            <span class="swipe-hint">↔ Swipe to switch pages</span
+            ><button
+              id="page-options"
+              class="icon-button"
+              aria-label="Page settings"
+              title="Page settings"
+            >
+              •••
+            </button>
+          </div>
+        </div>
+        <div id="edit-banner" class="edit-banner" hidden>
+          Drag any edge or corner to resize. Drag the header or body to move a
+          widget; drop onto another to swap. Use ⚙ for colors and visibility.
+          Alignment guides appear while dragging; hold Shift to bypass snapping.
+        </div>
+        <section
+          id="dashboard"
+          class="dashboard"
+          aria-label="Dashboard widgets"
+        ></section>
+        <footer>
+          <div id="page-dots"></div>
+          <span id="save-state">Appearance synchronization</span
+          ><span>iR-Board <b> / </b> INDEPENDENT RACING TOOLS</span>
+        </footer>
+      </main>
+    </div>
+    <dialog id="modal">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow" id="modal-eyebrow">YOUR DASHBOARD</span>
+          <h2 id="modal-title"></h2>
+        </div>
+        <button id="modal-close" class="icon-button" aria-label="Close">
+          ✕
+        </button>
+      </div>
+      <div id="modal-content"></div>
+    </dialog>
+    <div id="toast" role="status" hidden></div>
+    <div id="focus-status" role="status"></div>
+    <div id="screen-spotter" aria-hidden="true" hidden>
+      <div data-side="left" hidden></div><div data-side="right" hidden></div>
+    </div>
+    <div id="race-flag-overlay" role="status" aria-live="polite" hidden>
+      <div class="race-flag-sign"><div class="race-flag-cloth"></div><span class="race-flag-label"></span></div>
+    </div>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

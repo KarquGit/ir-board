@@ -1,0 +1,313 @@
+// Default dashboard supplied by the project maintainer.
+export const DEFAULT_LAYOUT = {
+  "version": 4,
+  "pages": [
+    {
+      "name": "Tachometer",
+      "preset": "auto",
+      "widgets": [
+        {
+          "id": "2ccff661-1bd1-43ae-979a-39869f5c056f",
+          "type": "tachometer",
+          "title": "Tachometer",
+          "colors": {},
+          "hidden": [
+            "water",
+            "oil",
+            "engineWarnings",
+            "powertrain"
+          ],
+          "layouts": {},
+          "shiftLights": {
+            "style": "segments",
+            "segments": 10,
+            "dots": 10,
+            "hz": 10,
+            "blinkRpm": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Page 2",
+      "preset": "auto",
+      "widgets": [
+        {
+          "id": "7fa0a4c4-4d58-44fe-b75a-ebe2e007695e",
+          "type": "relative",
+          "title": "Relative",
+          "colors": {},
+          "hidden": [
+            "carBrand",
+            "irating",
+            "team",
+            "pitHistory",
+            "status",
+            "radio",
+            "compound",
+            "pushToPass",
+            "lapCount",
+            "stint",
+            "iratingChange"
+          ],
+          "layouts": {},
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        },
+        {
+          "id": "7f8f6fc4-01b5-488f-85ff-cc6dae3c885f",
+          "type": "learnedmap",
+          "title": "Learned track map (Experimental)",
+          "colors": {},
+          "hidden": [],
+          "layouts": {},
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Page 3",
+      "preset": "auto",
+      "widgets": [
+        {
+          "id": "ad80425e-26f1-4fb2-8b6b-60962a786ca3",
+          "type": "fuel",
+          "title": "Fuel",
+          "colors": {},
+          "hidden": [],
+          "layouts": {
+            "landscape": {
+              "x": 0.3366666666666666,
+              "y": 0.5,
+              "w": 0.3266666666666667,
+              "h": 0.5
+            }
+          },
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        },
+        {
+          "id": "483b85c0-14bc-4719-a1f5-924fda63a681",
+          "type": "systems",
+          "title": "Car systems",
+          "colors": {},
+          "hidden": [],
+          "layouts": {
+            "landscape": {
+              "x": 0.6633333333333333,
+              "y": 0.5,
+              "w": 0.33666666666666667,
+              "h": 0.493274404619906
+            }
+          },
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        },
+        {
+          "id": "23fab807-47f3-4dd0-b03c-921ef72625f8",
+          "type": "inputs",
+          "title": "Inputs and gear",
+          "colors": {},
+          "hidden": [],
+          "layouts": {
+            "landscape": {
+              "x": 0,
+              "y": 0,
+              "w": 1,
+              "h": 0.495
+            }
+          },
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        },
+        {
+          "id": "a6c24c18-2a02-482a-8037-1347ed75c78e",
+          "type": "laps",
+          "title": "Lap timing",
+          "colors": {},
+          "hidden": [
+            "history"
+          ],
+          "layouts": {
+            "landscape": {
+              "x": 0,
+              "y": 0.505,
+              "w": 0.3333333333333333,
+              "h": 0.495
+            }
+          },
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Page 4",
+      "preset": "auto",
+      "widgets": [
+        {
+          "id": "8668f9af-623a-4b4d-8d4c-de13f2f905ef",
+          "type": "standings",
+          "title": "Standings",
+          "colors": {},
+          "hidden": [
+            "carBrand",
+            "classPosition",
+            "positionChange",
+            "team",
+            "lapCount",
+            "stint",
+            "iratingChange",
+            "bestTime",
+            "interval",
+            "averageLap",
+            "lapDeltas"
+          ],
+          "layouts": {},
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Page 5",
+      "preset": "auto",
+      "widgets": [
+        {
+          "id": "be803b3a-7c55-4fea-aeb9-fd98921e7eb0",
+          "type": "learnedmap",
+          "title": "Learned track map (Experimental)",
+          "colors": {},
+          "hidden": [],
+          "layouts": {},
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Page 6",
+      "preset": "auto",
+      "widgets": [
+        {
+          "id": "c746e7d6-f1db-45a6-875e-c81fec244977",
+          "type": "pit",
+          "title": "Pit stop",
+          "colors": {},
+          "hidden": [],
+          "layouts": {},
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Page 7",
+      "preset": "auto",
+      "widgets": [
+        {
+          "id": "81208d34-c627-462d-928d-4e4a35993a84",
+          "type": "irlogic",
+          "title": "iR-logic",
+          "colors": {},
+          "hidden": [],
+          "layouts": {},
+          "shiftLights": {
+            "style": "segments",
+            "segments": 15,
+            "dots": 15,
+            "hz": 8,
+            "blinkRpm": null
+          },
+          "coachReference": "session"
+        }
+      ]
+    }
+  ],
+  "active": 0,
+  "theme": "original",
+  "customTheme": {
+    "name": "Custom",
+    "bg": "#101216",
+    "background": "#191c22",
+    "text": "#f1f3f7",
+    "label": "#8c929f",
+    "border": "#2a2e36",
+    "accent": "#c3f35c",
+    "light": false,
+    "title": "#b2b8c5",
+    "positive": "#72df9b",
+    "negative": "#ff747b"
+  },
+  "driverCountries": {},
+  "alerts": {
+    "flags": {
+      "mode": "off",
+      "duration": 3,
+      "opacity": 0.5,
+      "blink": true,
+      "untilClear": true,
+      "enabled": {
+        "red": false,
+        "black": true,
+        "repair": true,
+        "checkered": true,
+        "debris": true,
+        "yellow": true,
+        "blue": true,
+        "white": true,
+        "green": true
+      }
+    },
+    "spotter": {
+      "mode": "halves",
+      "opacity": 0.25
+    }
+  }
+};

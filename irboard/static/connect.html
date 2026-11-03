@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Connect a tablet · iR-Board</title>
+    <link rel="icon" href="/icon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="connect-page">
+    <section class="connect-card">
+      <a class="connect-brand" href="/">iR-Board</a>
+      <h1>Connect your tablet</h1>
+      <p id="connection-instructions">
+        Scan the QR to connect automatically, or enter the displayed address on
+        your tablet and use the six-digit code below. Both devices must be on the same private network.
+      </p>
+      <div id="connection-error" role="status"></div>
+      <section id="manual-pairing" hidden>
+        <h2>No QR scanner?</h2>
+        <p id="manual-pairing-instructions">When you enter the address manually, use this code on the tablet. Scanning the QR does not require typing a code.</p>
+        <output id="manual-code" class="pairing-code" aria-label="Six-digit pairing code"></output>
+        <p id="manual-code-expiry" class="help"></p>
+      </section>
+      <label class="connect-address-label"
+        >Computer address<select
+          id="connection-address"
+          aria-label="Computer LAN address"
+        ></select
+      ></label>
+      <div class="qr-frame">
+        <img
+          id="connection-qr"
+          width="264"
+          height="264"
+          alt="QR code linking to the dashboard on this computer"
+          hidden
+        />
+      </div>
+      <a id="connection-link" class="connection-url"></a>
+      <div class="connect-actions">
+        <button id="refresh-qr" class="button secondary">Refresh QR</button
+        ><a class="button primary" href="/">Open dashboard</a>
+      </div>
+      <p id="connection-message" class="help"></p>
+      <p class="help">
+        Keep this computer running. Use a private network and allow iR-Board
+        through Windows Firewall for private networks only.
+      </p>
+      <p class="help">
+        Tablet cannot connect? In the iR-Board desktop window, click
+        <strong>Allow tablet access through Windows Firewall</strong> and accept
+        the Windows permission prompt. Set your trusted home network to
+        <strong>Private</strong> in Windows network settings. Both devices must
+        use the same LAN; guest Wi-Fi, client isolation and VPNs can block access.
+        Try another computer address above if a VPN or virtual adapter is listed.
+      </p>
+    </section>
+    <script src="/connect.js" type="module"></script>
+  </body>
+</html>
