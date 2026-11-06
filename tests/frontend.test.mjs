@@ -580,3 +580,34 @@ test('bundled layout matches the importable JSON and retains alert settings', as
   assert.equal(state.alerts.flags.untilClear,true);
   assert.equal(state.alerts.spotter.opacity,.25);
 });
+
+
+test('button box bindings and appearance survive migration without changing saved pages', async () => {
+  const {buttonBindings,BUTTON_ACTIONS,buttonboxContent}=await import('../irboard/static/buttonbox.mjs');
+  const original=defaults();
+  assert.equal(original.pages.length,7);
+  assert.ok(original.pages.every(p=>p.widgets.every(w=>w.type!=='buttonbox')));
+  assert.equal(TYPES.buttonbox,'Button box');
+  const bindings=buttonBindings({ignition:'A',starter:'F24',radio:'',abs_up:'<script>',evil:'F1'});
+  assert.equal(bindings.ignition,'A');
+  assert.equal(bindings.starter,'F24');
+  assert.equal(bindings.radio,'');
+  assert.equal(bindings.abs_up,BUTTON_ACTIONS.abs_up.defaultKey);
+  assert.ok(!Object.hasOwn(bindings,'evil'));
+  const state=migrate({...original,pages:[...original.pages,{name:'My controls',widgets:[{
+    type:'buttonbox',title:'GT3 controls',buttonBindings:bindings,colors:{on:'#123456',press:'#abcdef'},hidden:['radio'],
+    layouts:{landscape:{x:0,y:0,w:1,h:1}},
+  }]}]});
+  assert.equal(state.pages.length,8);
+  const box=state.pages.at(-1).widgets[0];
+  assert.deepEqual(box.buttonBindings,bindings);
+  assert.equal(box.title,'GT3 controls');
+  assert.equal(box.colors.press,'#abcdef');
+  assert.deepEqual(box.hidden,['radio']);
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(state))).pages.at(-1).widgets[0].buttonBindings,bindings);
+  const markup=buttonboxContent();
+  for(const action of Object.keys(BUTTON_ACTIONS))assert.ok(markup.includes(`data-action="${action}"`),action);
+  assert.ok(markup.includes('<svg'));
+  const keys=Object.values(buttonBindings());
+  assert.equal(new Set(keys).size,12);
+});

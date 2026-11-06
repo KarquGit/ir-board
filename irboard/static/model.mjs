@@ -1,5 +1,6 @@
 import { DEFAULT_LAYOUT } from "./default-layout.mjs";
 import { alertSettings } from "./alerts.mjs";
+import { buttonBindings } from "./buttonbox.mjs";
 import { referenceMode } from "./experimental.mjs";
 import { THEMES, customTheme } from "./themes.mjs";
 import { COUNTRY_CODES } from "./countries.mjs";
@@ -14,6 +15,7 @@ export const TYPES = {
   systems: "Car systems",
   learnedmap: "Learned track map (Experimental)",
   irlogic: "iR-logic",
+  buttonbox: "Button box",
   radar: "Spotter",
   inspector: "SDK inspector",
   pit: "Pit stop",
@@ -29,6 +31,7 @@ export const BASE_COLORS = {
   negative: ["Loss / error", "#ff747b"],
 };
 export const ELEMENT_COLORS = {
+  buttonbox: {on:["Enabled","#72df9b"],limiter:["Limiter enabled","#ff9f1c"],press:["Press / hold","#56cfe1"],off:["Inactive","#8c929f"]},
   tachometer: {
     rpm: ["RPM", "#f1f3f7"],
     speed: ["Speed", "#f1f3f7"],
@@ -139,6 +142,7 @@ export const LAYOUTS = {
 };
 export const templateSlots = (p) => LAYOUTS[p.preset]?.slots || 0;
 export const ELEMENTS = {
+  buttonbox: {ignition:"Ignition",starter:"Starter",pit_limiter:"Pit limiter",bias:"Brake bias",flash:"Flash lights",tc:"Traction control",wipers:"Wipers",abs:"ABS",radio:"Radio",status:"Status and command feedback"},
   irlogic:{delta:'Lap delta',gauge:'Delta bar',predicted:'Predicted lap',reference:'Reference time',sectors:'Automatic sector carousel'},
   learnedmap: {
     track: "Driving line",
@@ -291,6 +295,7 @@ export function widget(type) {
     layouts: {},
     shiftLights: shiftSettings(),
     ...(type==='irlogic'?{coachReference:'session'}:{}),
+    ...(type==='buttonbox'?{buttonBindings:buttonBindings()}:{}),
   };
 }
 export function defaults() {
@@ -376,6 +381,7 @@ export function migrate(raw) {
         layouts,
         shiftLights: shiftSettings(w.shiftLights),
         ...(w.type==='irlogic'?{coachReference:referenceMode(w.coachReference)}:{}),
+        ...(w.type==='buttonbox'?{buttonBindings:buttonBindings(w.buttonBindings)}:{}),
       };
     });
     const preset = Object.hasOwn(LAYOUTS, p.preset) ? p.preset : "auto";

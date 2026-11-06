@@ -5,6 +5,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().the
     [registration.active, registration.waiting, registration.installing].some(worker => worker?.scriptURL === oldWorker)
   ).map(registration => registration.unregister()));
 }).catch(() => {});
+import { buttonBindings, buttonboxBindingsEditor, refreshButtonbox, releaseButtonboxes } from "./buttonbox.mjs";
 import { THEMES, activeTheme, themeColor, applyTheme, customTheme, CUSTOM_THEME_COLORS } from "./themes.mjs";
 import { fuelEstimate } from "./fuel.mjs";
 import { refreshInputs } from "./driving-view.mjs";
@@ -150,6 +151,7 @@ function save() {
   }
 }
 function modal(title, html) {
+  releaseButtonboxes();
   $("#modal-title").textContent = title;
   $("#modal-content").innerHTML = html;
   $("#modal").showModal();
@@ -254,6 +256,7 @@ const edgeName = {
   nw: "top-left corner",
 };
 function render() {
+  releaseButtonboxes();
   applyTheme(state.theme, state.customTheme);
   save();
   $("#page-name").textContent = page().name;
@@ -551,11 +554,17 @@ function configure(id) {
       )
       .join(
         "",
-      )}</div></section>${w.type === 'tachometer' ? `<section class="shift-settings"><h3>RPM indicator</h3><label>Style<select name="led-style">${[['segments','Segments'],['dots','Dots'],['bar','Continuous filling bar']].map(([key,label])=>`<option value="${key}" ${draft.shiftLights.style===key?'selected':''}>${label}</option>`).join('')}</select></label><label>Segment count<input name="led-segments" type="number" min="4" max="40" step="1" value="${draft.shiftLights.segments}"></label><label>Dot count<input name="led-dots" type="number" min="4" max="40" step="1" value="${draft.shiftLights.dots}"></label><label>Fast blink<select name="blink-speed">${[6,8,10].map(hz=>`<option value="${hz}" ${draft.shiftLights.hz===hz?'selected':''}>${hz} Hz</option>`).join('')}</select></label><label>Blink threshold · RPM<input name="blink-rpm" type="number" min="500" max="30000" step="1" placeholder="Automatic from SDK" value="${draft.shiftLights.blinkRpm ?? ''}"></label><p class="help">Only the graphical indicator blinks. Low / high RPM colors control the continuous bar gradient.</p></section>` : ''}<div class="form-actions"><button type="button" class="button danger" id="remove">Remove widget</button><button type="button" class="button secondary" id="reset-colors">Default colors</button><button type="button" class="button secondary" id="cancel-colors">Cancel</button><button class="button primary">Save</button></div></form>`,
+      )}</div></section>${w.type === 'tachometer' ? `<section class="shift-settings"><h3>RPM indicator</h3><label>Style<select name="led-style">${[['segments','Segments'],['dots','Dots'],['bar','Continuous filling bar']].map(([key,label])=>`<option value="${key}" ${draft.shiftLights.style===key?'selected':''}>${label}</option>`).join('')}</select></label><label>Segment count<input name="led-segments" type="number" min="4" max="40" step="1" value="${draft.shiftLights.segments}"></label><label>Dot count<input name="led-dots" type="number" min="4" max="40" step="1" value="${draft.shiftLights.dots}"></label><label>Fast blink<select name="blink-speed">${[6,8,10].map(hz=>`<option value="${hz}" ${draft.shiftLights.hz===hz?'selected':''}>${hz} Hz</option>`).join('')}</select></label><label>Blink threshold · RPM<input name="blink-rpm" type="number" min="500" max="30000" step="1" placeholder="Automatic from SDK" value="${draft.shiftLights.blinkRpm ?? ''}"></label><p class="help">Only the graphical indicator blinks. Low / high RPM colors control the continuous bar gradient.</p></section>` : ''}${w.type==='buttonbox'?buttonboxBindingsEditor(draft.buttonBindings):''}<div class="form-actions"><button type="button" class="button danger" id="remove">Remove widget</button><button type="button" class="button secondary" id="reset-colors">Default colors</button><button type="button" class="button secondary" id="cancel-colors">Cancel</button><button class="button primary">Save</button></div></form>`,
   );
   if(w.type==='irlogic') $('#widget-form [name=coach-reference]').onchange=event=>{
     draft.coachReference=referenceMode(event.target.value);paint();
   };
+  if(w.type==='buttonbox') document.querySelectorAll('[data-button-binding]').forEach(input=>{
+    input.onchange=()=>{
+      draft.buttonBindings=buttonBindings({...draft.buttonBindings,[input.dataset.buttonBinding]:input.value});
+      paint();
+    };
+  });
   const preview = $(".preview");
   theme(preview, draft);
   preview.addEventListener("click", (e) => {
@@ -609,6 +618,13 @@ function configure(id) {
   };
   $("#widget-form").onsubmit = (e) => {
     e.preventDefault();
+    if(w.type==='buttonbox') {
+      const assigned=Object.values(buttonBindings(draft.buttonBindings)).filter(Boolean);
+      if(new Set(assigned).size!==assigned.length) {
+        toast('Assign a different key to each button-box action, or choose Disabled.');
+        return;
+      }
+    }
     if (w.type === 'tachometer') {
       const removed = ['water', 'oil'].every(k => draft.hidden.includes(k));
       const wasRemoved = ['water', 'oil'].every(k => w.hidden.includes(k));
@@ -626,6 +642,7 @@ function configure(id) {
       hidden: [...draft.hidden],
       shiftLights: { ...draft.shiftLights },
       ...(w.type==='irlogic'?{coachReference:referenceMode(draft.coachReference)}:{}),
+      ...(w.type==='buttonbox'?{buttonBindings:buttonBindings(draft.buttonBindings)}:{}),
     });
     $("#modal").close();
     render();
@@ -1101,6 +1118,15 @@ function wirePit(form) {
     }
   };
 }
+async function sendButtonbox(payload) {
+  const response=await fetch('/api/buttonbox', {
+    method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'},
+    body:JSON.stringify(payload), signal:AbortSignal.timeout(1800), keepalive:payload.phase==='up',
+  });
+  const result=await response.json();
+  if(!response.ok)throw Error(result.error || 'Button box command failed');
+  return result;
+}
 function paint() {
   if (!data) return;
   const fresh = data.connected && (data.sample_age || 0) + (performance.now() - receivedAt) / 1000 < 4;
@@ -1125,7 +1151,11 @@ function paint() {
       body = el.querySelector(".widget-body");
     let restoreRaceScroll=null;
     theme(el, colorDraft?.id === w.id ? colorDraft : w);
-    if (w.type === "pit") {
+    if (w.type === 'buttonbox') {
+      refreshButtonbox(body,data,colorDraft?.id===w.id?colorDraft:w,{
+        send:sendButtonbox, disabled:!fresh || edit || $('#modal').open || data.access?.can_control===false,
+      });
+    } else if (w.type === "pit") {
       if (!body.querySelector("form")) {
         body.innerHTML = pitForm();
         const form = body.querySelector("form");
@@ -1210,7 +1240,8 @@ function paint() {
       if (colorDraft.type === 'tachometer') {
         if (!previewBody.querySelector('.tachometer-panel')) previewBody.innerHTML = content(colorDraft.type, driverView());
         updateTachometer(previewBody, data.car, colorDraft.shiftLights, data.session);
-      } else if(EXPERIMENTAL_TYPES.includes(colorDraft.type)) refreshExperimental(previewBody,colorDraft.type,driverView(),colorDraft);
+      } else if(colorDraft.type==='buttonbox') refreshButtonbox(previewBody,data,colorDraft,{preview:true});
+      else if(EXPERIMENTAL_TYPES.includes(colorDraft.type)) refreshExperimental(previewBody,colorDraft.type,driverView(),colorDraft);
       else previewBody.innerHTML = colorDraft.type === 'pit' ? pitForm(true) : content(colorDraft.type, driverView());
       applyVisibility(preview, colorDraft);
     }
@@ -1260,6 +1291,7 @@ async function poll() {
 }
 // Persist final browser edits even when its tab closes before the next poll.
 window.addEventListener('pagehide', () => {
+  releaseButtonboxes();
   if (sharedRevision === null || syncApplying) return;
   const layout = sharedLayout();
   if (JSON.stringify(layout) === sharedSignature) return;

@@ -39,7 +39,7 @@ class LayoutStore:
     def validate(layout):
         if not isinstance(layout, dict) or not isinstance(layout.get('pages'), list) or not 1 <= len(layout['pages']) <= 100:
             raise ValueError('Invalid layout pages')
-        types = {'standings','relative','inputs','tachometer','laps','fuel','weather','systems','flag','learnedmap','flatmap','radar','trace','inspector','pit','irlogic'}
+        types = {'standings','relative','inputs','tachometer','laps','fuel','weather','systems','flag','learnedmap','flatmap','radar','trace','inspector','pit','irlogic','buttonbox'}
         for page in layout['pages']:
             if not isinstance(page, dict) or not isinstance(page.get('name'), str) or not isinstance(page.get('widgets'), list):
                 raise ValueError('Invalid layout page')

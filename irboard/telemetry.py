@@ -4,6 +4,7 @@ One worker owns the SDK. HTTP threads only read complete JSON-safe snapshots.
 Unavailable telemetry stays null; live never silently falls back to demo.
 """
 import copy
+from .buttonbox import ButtonBox, read_states
 import queue
 from .pit import commands, read_pit, validate_compound, read_compounds
 from .track import TrackRecorder, MapStore, data_directory
@@ -91,7 +92,7 @@ def rpm_limits(info, live=None):
 def empty(mode='live', message='Waiting for iRacing'):
     return dict(mode=mode, connected=False, message=message, timestamp=time.time(),
                 session={}, car={}, drivers=[], history=[], fuel={}, trace=[], reference=[],
-                sectors=[], input_trace=[], raw={}, pit={}, coaching={}, track_map=dict(source='sdk-gps',status='waiting',progress=0,points=[],message='Waiting for SDK GPS telemetry'))
+                sectors=[], input_trace=[], raw={}, pit={}, coaching={}, buttonbox={}, track_map=dict(source='sdk-gps',status='waiting',progress=0,points=[],message='Waiting for SDK GPS telemetry'))
 
 
 @lru_cache(maxsize=1)
@@ -513,6 +514,7 @@ class LiveSource:
             data['sectors']=sector_layout(get('SplitTimeInfo'))
             data['sector_source']='sdk' if data['sectors'] else 'unavailable'
             data['pit'] = read_pit(get, driver_info, car['in_car'])
+            data['buttonbox'] = read_states(get, car)
             data['raw'] = {k: get(k) for k in list(SCALARS.values()) + ['SessionFlags', 'SessionState', 'SessionTime', 'TrackWetness']}
             if include_raw:
                 data['raw'].update({name:get(name) for name in headers})
@@ -600,6 +602,7 @@ class Telemetry:
         self._thread = None
         self._commands = queue.Queue(maxsize=4)
         self._raw_until = 0
+        self.buttonbox = ButtonBox(demo=demo)
 
     def start(self):
         self._thread = threading.Thread(target=self._run, name='iracing-telemetry', daemon=True)
@@ -607,6 +610,7 @@ class Telemetry:
 
     def stop(self):
         self._stop.set()
+        self.buttonbox.stop()
         self._fail_commands('Telemetry stopped. The queued plan was not sent.')
         if self._thread:
             self._thread.join(timeout=3)
@@ -624,7 +628,26 @@ class Telemetry:
                         filtered[key] = {} if key in ('raw', 'track_map', 'coaching') else []
                 if 'trace' not in sections:
                     filtered['input_trace'] = []
-            return copy.deepcopy(filtered)
+            result = copy.deepcopy(filtered)
+        states = result.setdefault('buttonbox', {})
+        states.update(source='demo' if self.demo else 'sdk', available=bool(result['connected']) and result['sample_age'] < 2 and (self.demo or self.buttonbox.sink.supported))
+        if self.demo:
+            with self.buttonbox.lock:
+                states.update(self.buttonbox.demo_states)
+            states['message'] = 'DEMO: simulated controls; no keys sent.'
+        elif not self.buttonbox.sink.supported:
+            states['message'] = 'Live button-box controls require Windows.'
+        else:
+            states['message'] = 'Keep iRacing focused. Assign the same keys in iRacing Controls.'
+        for field in ('ignition','pit_limiter','wipers','bias','tc','abs'):
+            states.setdefault(field,None)
+            if not self.demo and (not result['connected'] or result['sample_age'] >= 2):
+                states[field] = None
+        return result
+
+    def submit_buttonbox(self, payload, owner='local'):
+        snap = self.snapshot(sections=set())
+        return self.buttonbox.submit(payload, ready=bool(snap['buttonbox']['available']), owner=owner)
 
     def submit_pit(self, plan):
         batch = commands(plan)  # Validate before enqueueing any side effects.
@@ -700,6 +723,8 @@ class Telemetry:
                     data = source.read() if self.demo else source.read(include_raw=time.monotonic()<self._raw_until)
                     if not self.demo:
                         self._drain_commands(source, data)
+                        if not data.get('connected'):
+                            self.buttonbox.release_all()
                     # Validate before publishing; malformed SDK floats must never break JSON.
                     json.dumps(data,allow_nan=False)
                     with self._lock:
@@ -708,6 +733,7 @@ class Telemetry:
                     with self._lock:
                         self._data = empty('demo' if self.demo else 'live', f'SDK error ({type(exc).__name__}). Reconnecting…')
                     if not self.demo:
+                        self.buttonbox.release_all()
                         self._fail_commands('SDK connection interrupted. The queued plan was not sent.')
                         source.laps.reset()
                         source.race.reset()
@@ -720,6 +746,7 @@ class Telemetry:
                     self._stop.wait(1)
                 self._stop.wait(max(0, 1/self.hz - (time.monotonic()-started)) if data.get('connected') else 1)
         finally:
+            self.buttonbox.release_all()
             self._fail_commands('Telemetry stopped. The queued plan was not sent.')
             if not self.demo:
                 source.sdk.shutdown()

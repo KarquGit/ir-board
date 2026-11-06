@@ -70,22 +70,22 @@ with sync_playwright() as p:
     # A third widget stays on the current page; templates never impose limits.
     page.locator('#layouts').click();page.locator('[data-preset=left-right]').click()
     page.locator('#add-widget').click();page.locator('[data-kind=radar]').click();assert page.locator('.widget').count()==3
-    assert page.locator('#layout-title').inner_text()=='Race'
+    assert page.locator('#layout-title').inner_text()=='Page 2'
     # Learned map uses only telemetry and displays all demo drivers.
-    page.locator('[data-page="4"]').first.click();page.wait_for_selector('.learned-map circle')
-    assert page.locator('.learned-map circle').count()==12
+    page.locator('[data-page="4"]').first.click();page.wait_for_selector('.map-marker-body')
+    assert page.locator('.map-marker-body').count()==12
     page.screenshot(path=str(OUT/'flat-map.png'))
     # Pit editing survives polling and never submits until explicitly applied.
-    page.locator('[data-page="3"]').first.click();page.wait_for_selector('.pit-form')
+    page.locator('[data-page="5"]').first.click();page.wait_for_selector('.pit-form')
     form=page.locator('.pit-form');form.locator('[data-tires=all]').click();calculated=form.locator('[name=fuel]').input_value()
     page.wait_for_timeout(500);assert form.locator('[name=fuel]').input_value()==calculated
     seen=[];page.on('request',lambda r:seen.append(r.post_data_json) if r.url.endswith('/api/pit') else None)
     assert not seen;form.locator('.pit-apply').click();expect(form.locator('.pit-result')).to_contain_text('DEMO')
     assert seen[0]['fuel']==int(calculated) and len(seen[0]['tires'])==4
     page.screenshot(path=str(OUT/'pit-tablet.png'))
-    # Small portrait tablet has two visible panels with no horizontal overflow.
+    # Small portrait tablet keeps the pit panel visible without horizontal overflow.
     page.set_viewport_size({'width':600,'height':800});page.wait_for_timeout(200)
-    assert page.locator('.widget').count()==2
+    assert page.locator('.widget').count()==1
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     page.locator('#fullscreen').click();page.wait_for_timeout(100);page.screenshot(path=str(OUT/'portrait-fullscreen.png'))
     # Screenshot-sized display; one tachometer panel fills the whole surface.

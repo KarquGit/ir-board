@@ -81,6 +81,11 @@ jobs:
             if ($module.Content -notmatch 'sectorState') {
               throw "Installed coaching widgets are missing"
             }
+            $buttonModule = Invoke-WebRequest http://127.0.0.1:8000/buttonbox.mjs
+            if ($buttonModule.Content -notmatch 'refreshButtonbox') { throw "Installed button box widget is missing" }
+            $press = @{ action = 'ignition'; key = 'F13'; phase = 'tap'; press_id = 'installer-smoke-ignition' } | ConvertTo-Json
+            $pressed = Invoke-RestMethod http://127.0.0.1:8000/api/buttonbox -Method Post -ContentType 'application/json' -Body $press
+            if ($pressed.status -ne 'demo') { throw "Installed DEMO button box sent real input" }
             $connection = Invoke-RestMethod http://127.0.0.1:8000/api/connection
             if (!$connection.urls.Count) { throw "Installed application did not detect a LAN address" }
             $url = [uri]::EscapeDataString($connection.urls[0])
@@ -143,21 +148,21 @@ jobs:
           name: iR-Board ${{ github.ref_name }}
           prerelease: false
           body: |
-            iR-Board v1.0.0 — first release for Windows x64.
+            iR-Board v1.1.0 — Button box for Windows x64.
             Download the setup EXE under Assets. Python and the iRacing SDK adapter are included.
 
-            - Seven customizable dashboard pages, thirty themes and synchronized settings.
-            - iR-logic with saved clean-lap references and an automatic SDK sector carousel: green gains, red losses and orange current sector.
-            - Persistent fuel measurements and a locally recorded Learned track map (Experimental).
-            - PIT service planning, configurable shift lights, driving alerts and tablet pairing.
-            - DEMO mode works without iRacing. See the README for Windows and Linux commands.
+            - New optional Button box widget: ignition, starter, pit limiter, lights, wipers, radio, brake bias, TC and ABS.
+            - Large function icons, telemetry-confirmed state colors, live adjustment values and tap / hold feedback.
+            - Configurable keyboard bindings, synchronized with your widget layout. Match them to iRacing controls.
+            - Foreground simulator checks and automatic release of held keys after focus or connection loss.
+            - DEMO previews the widget without sending input. Existing layouts and saved learning data are preserved.
 
             Use a trusted private LAN. HTTP traffic is not encrypted. Do not expose the dashboard to the Internet.
             License: MIT. Third-party components retain their own licenses.
 
             The Windows installer is unsigned. Its SHA-256 checksum is attached.
             Dependency auditing, automated tests and an installed-application smoke test must pass before publication.
-            Live iRacing telemetry and PIT-service acceptance require verification in a Windows session.
+            Live iRacing keyboard input, telemetry and PIT-service acceptance require verification in a Windows practice session.
           files: |
             release/*.exe
             release/*.sha256

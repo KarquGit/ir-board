@@ -2,7 +2,7 @@
 
 A customizable iRacing dashboard for tablets on your private local network.
 
-**Version v1.0.0 · First release · Windows · MIT License**
+**Version v1.1.0 · Windows · MIT License**
 
 ## Tablet dashboard
 
@@ -29,6 +29,22 @@ Generated tablet mockups showing iR-Board in fullscreen mode with simulated DEMO
 iR-logic shows live lap delta, predicted lap time and selectable clean-lap references. Its automatic carousel follows the SDK sector count and keeps the current sector centered. Completed sectors show gains in green and losses in red; the current sector is orange. Unmeasured sectors remain neutral.
 
 iR-logic is included on the seventh default page and is also available using **Add widget**. Complete a continuous clean lap to record references; personal-best references are saved locally for the car and track. Sector comparisons require SDK sector boundaries.
+
+## Button box
+
+[![Button box widget in DEMO mode](docs/images/buttonbox-demo.png)](docs/images/buttonbox-demo.png)
+
+Actual widget screenshot with illustrative DEMO telemetry.
+
+Add **Button box** using **Add widget** on any page. It includes ignition, a hold-to-start starter, pit limiter, flash lights, wipers, hold-to-talk radio, and brake bias / traction control / ABS adjustments. Large icons, configurable state colors and momentary press feedback make it suitable for touch screens.
+
+Open the widget settings to assign a keyboard key to each action (F1–F24, A–Z or 0–9), or choose **Unassigned**. Assign the same keys to the corresponding controls in iRacing. Defaults use F13–F24; you can select keys present on your keyboard instead. Do not reuse a key for different actions. Bindings are saved and synchronized with the widget. Cars differ in the controls they support.
+
+Commands run on the Windows computer and require the iRacing simulator to be the foreground application. Use the tablet while the simulator is focused. To bind a default F13–F24 key, open the matching control assignment in iRacing, then press its button on the tablet. Keep iR-Board and iRacing at the same Windows privilege level.
+
+Green / amber indicate a confirmed active telemetry state; gray indicates off; **—** means the SDK does not provide a value. Cyan indicates a tap or a held button, not confirmation from the game. Starter and radio release when you lift your finger. A server watchdog also releases held keys if the tablet disconnects or focus leaves iRacing.
+
+**DEMO** shows illustrative states and validates presses without sending keyboard input. Live Windows input and each car's controls should be checked in a practice session before use in a race.
 
 ## Install
 

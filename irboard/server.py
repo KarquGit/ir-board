@@ -4,6 +4,7 @@ import json
 import mimetypes
 import os
 import base64
+import hashlib
 import threading
 import socket
 import re
@@ -23,6 +24,12 @@ class LANServer(ThreadingHTTPServer):
     def __init__(self,*args,**kwargs):
         self.slots=threading.BoundedSemaphore(32)
         super().__init__(*args,**kwargs)
+    def server_close(self):
+        telemetry = getattr(self, 'telemetry', None)
+        if telemetry is not None:
+            telemetry.buttonbox.stop()
+        super().server_close()
+
     def process_request(self,request,address):
         if not self.slots.acquire(blocking=False):
             self.shutdown_request(request);return
@@ -116,7 +123,7 @@ def create_server(host, port, telemetry, lan_host=None, layout_store=None):
                     return
                 self.reply(200, json.dumps(result, allow_nan=False, separators=(',', ':')).encode(), 'application/json')
                 return
-            files = {'/sw.js':'sw.js','/icon-192.png':'icon-192.png','/icon-512.png':'icon-512.png','/': 'index.html', '/app.js': 'app.js', '/style.css': 'style.css', '/icon.svg': 'icon.svg', '/model.mjs': 'model.mjs', '/alerts.mjs':'alerts.mjs', '/experimental.mjs':'experimental.mjs', '/default-layout.mjs': 'default-layout.mjs', '/widgets.mjs': 'widgets.mjs', '/fuel.mjs': 'fuel.mjs', '/format.mjs': 'format.mjs', '/race-view.mjs': 'race-view.mjs', '/driving-view.mjs': 'driving-view.mjs', '/countries.mjs': 'countries.mjs', '/themes.mjs': 'themes.mjs', '/connect': 'connect.html', '/connect.js': 'connect.js'}
+            files = {'/sw.js':'sw.js','/icon-192.png':'icon-192.png','/icon-512.png':'icon-512.png','/': 'index.html', '/app.js': 'app.js', '/style.css': 'style.css', '/icon.svg': 'icon.svg', '/model.mjs': 'model.mjs', '/alerts.mjs':'alerts.mjs', '/experimental.mjs':'experimental.mjs', '/buttonbox.mjs':'buttonbox.mjs', '/default-layout.mjs': 'default-layout.mjs', '/widgets.mjs': 'widgets.mjs', '/fuel.mjs': 'fuel.mjs', '/format.mjs': 'format.mjs', '/race-view.mjs': 'race-view.mjs', '/driving-view.mjs': 'driving-view.mjs', '/countries.mjs': 'countries.mjs', '/themes.mjs': 'themes.mjs', '/connect': 'connect.html', '/connect.js': 'connect.js'}
             if path not in files:
                 self.reply(404, b'Not found', 'text/plain')
                 return
@@ -126,7 +133,7 @@ def create_server(host, port, telemetry, lan_host=None, layout_store=None):
         def do_POST(self):
             if not self.host_ok():return
             path=urlsplit(self.path).path
-            if path not in ('/api/pit','/api/pair','/api/pairing','/api/layout'):
+            if path not in ('/api/pit','/api/pair','/api/pairing','/api/layout','/api/buttonbox'):
                 self.reply(404,b'{"error":"Not found"}','application/json');return
             origin=self.headers.get('Origin')
             if self.headers.get('Sec-Fetch-Site')=='cross-site' or (origin and
@@ -136,7 +143,7 @@ def create_server(host, port, telemetry, lan_host=None, layout_store=None):
                 self.reply(415,b'{"error":"JSON required"}','application/json');return
             if path=='/api/pairing' and not self.local():
                 self.reply(403,b'{"error":"Generate pairing codes on the server computer"}','application/json');return
-            if path in ('/api/pit', '/api/layout') and not self.access()['can_control']:
+            if path in ('/api/pit', '/api/layout', '/api/buttonbox') and not self.access()['can_control']:
                 self.reply(401,b'{"error":"Pair this device using the QR or six-digit code from the server computer"}','application/json');return
             try:
                 size=int(self.headers.get('Content-Length','0'))
@@ -159,6 +166,9 @@ def create_server(host, port, telemetry, lan_host=None, layout_store=None):
                     if not session:
                         self.reply(401,b'{"error":"Code is incorrect, expired or already used. Check the current code on the computer. After too many attempts, wait one minute."}','application/json');return
                     self.reply(200,b'{"status":"paired"}','application/json',cookie=Pairing.cookie(session));return
+                elif path=='/api/buttonbox':
+                    owner = hashlib.sha256((self.headers.get('Cookie','') or self.client_address[0]).encode()).hexdigest()
+                    result=telemetry.submit_buttonbox(payload, owner=owner)
                 else:result=telemetry.submit_pit(payload)
                 self.reply(200,json.dumps(result).encode(),'application/json')
             except (ValueError,UnicodeDecodeError) as exc:
@@ -199,6 +209,7 @@ def create_server(host, port, telemetry, lan_host=None, layout_store=None):
                 logging.getLogger('irboard.http').warning('HTTP response %s',args[1])
 
     server = LANServer((host, port), Handler)
+    server.telemetry = telemetry
     server.connection_info = connection_info(host, server.server_port, lan_host, scheme=scheme)
     server.allowed_names={'127.0.0.1','localhost'}|{urlsplit(url).hostname.lower().rstrip('.') for url in server.connection_info['urls']}
     server.layout_store=layout_store or LayoutStore()

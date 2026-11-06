@@ -1,3 +1,4 @@
+import { buttonboxContent } from "./buttonbox.mjs";
 import { shiftSettings } from "./model.mjs";
 import { raceFlag } from "./alerts.mjs";
 import { EXPERIMENTAL_TYPES, experimentalContent } from "./experimental.mjs";
@@ -132,6 +133,7 @@ function safetyBadge(driver) {
   return `<span class="safety-rating" data-role="safetyRating" data-element="safetyRating" style="color:var(--c-safetyTextOverride,${contrastColor(color)});border-color:var(--c-safetyOverride,${color});background:var(--c-safetyOverride,${color})">SR ${value}</span>`;
 }
 export function content(type, data) {
+  if(type==='buttonbox')return buttonboxContent();
   if(EXPERIMENTAL_TYPES.includes(type))return experimentalContent(type);
   const c = data.car,
     s = data.session,
